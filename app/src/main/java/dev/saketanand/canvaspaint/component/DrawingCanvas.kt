@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.util.fastForEach
 import dev.saketanand.canvaspaint.DrawingActions
 import dev.saketanand.canvaspaint.PathData
 import kotlin.math.abs
@@ -30,18 +31,19 @@ fun DrawingCanvas(
             .clipToBounds()
             .background(Color.White)
             .pointerInput(true) {
-                detectDragGestures(onDragStart = {
-                    onAction(DrawingActions.OnNewPathStart)
-                }, onDragEnd = {
-                    onAction(DrawingActions.OnNewPathEnd)
-                }, onDragCancel = {
-                    onAction(DrawingActions.OnNewPathEnd)
-                }, onDrag = { change, _ ->
-                    onAction(DrawingActions.OnDraw(change.position))
-                })
+                detectDragGestures(
+                    onDragStart = {
+                        onAction(DrawingActions.OnNewPathStart)
+                    }, onDragEnd = {
+                        onAction(DrawingActions.OnNewPathEnd)
+                    }, onDragCancel = {
+                        onAction(DrawingActions.OnNewPathEnd)
+                    }, onDrag = { change, _ ->
+                        onAction(DrawingActions.OnDraw(change.position))
+                    })
             }
     ) {
-        paths.forEach { pathData ->
+        paths.fastForEach { pathData ->
             drawPath(
                 path = pathData.path,
                 color = pathData.color,
@@ -70,8 +72,8 @@ private fun DrawScope.drawPath(
                 val to = path[i]
                 val dx = abs(from.x - to.x)
                 val dy = abs(from.y - to.y)
-                if (dx > smoothness || dy > smoothness) {
-                    quadraticTo(x1 = (from.x + to.x) / 2, y1 = (from.y - to.y) / 2, to.x, to.y)
+                if (dx >= smoothness || dy >= smoothness) {
+                    quadraticTo(x1 = (from.x + to.x) / 2f, y1 = (from.y + to.y) / 2f, to.x, to.y)
                 }
             }
         }

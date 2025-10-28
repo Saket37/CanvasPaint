@@ -38,8 +38,8 @@ class CanvasViewModel : ViewModel() {
         when (action) {
             DrawingActions.OnClearCanvasClick -> onClearCanvasClick()
             is DrawingActions.OnDraw -> onDraw(action.offset)
-            DrawingActions.OnNewPathEnd -> onNewPathStart()
-            DrawingActions.OnNewPathStart -> onPathEnd()
+            DrawingActions.OnNewPathEnd -> onPathEnd()
+            DrawingActions.OnNewPathStart -> onNewPathStart()
             is DrawingActions.OnSelectNewColor -> onSelectColor(action.color)
         }
     }
