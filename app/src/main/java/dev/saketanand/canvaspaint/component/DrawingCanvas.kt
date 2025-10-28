@@ -3,6 +3,7 @@ package dev.saketanand.canvaspaint.component
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -13,6 +14,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.util.fastForEach
 import dev.saketanand.canvaspaint.DrawingActions
@@ -31,16 +33,58 @@ fun DrawingCanvas(
             .clipToBounds()
             .background(Color.White)
             .pointerInput(true) {
-                detectDragGestures(
-                    onDragStart = {
+                awaitPointerEventScope {
+                    while (true) {
+                        val down = awaitPointerEvent(PointerEventPass.Main)
+                            .changes.first()
+                        down.consume()
+                        // A new path starts as soon as the finger is down
                         onAction(DrawingActions.OnNewPathStart)
-                    }, onDragEnd = {
+                        onAction(DrawingActions.OnDraw(down.position))
+                        // Loop to track drag events
+                        while (true) {
+                            val event = awaitPointerEvent(PointerEventPass.Main)
+
+                            // Find the change associated with the original "down" event
+                            val drag = event.changes.firstOrNull { it.id == down.id }
+                            if (drag != null) {
+                                // --- Pointer is moving ---
+                                if (drag.pressed) {
+                                    // This is a drag event
+                                    onAction(DrawingActions.OnDraw(drag.position))
+                                    drag.consume()
+                                }
+                                // --- Pointer went up ---
+                                else {
+                                    // This is the "up" event
+                                    // Consume the "up" event
+                                    drag.consume()
+                                    break // Exit inner drag loop
+                                }
+                            }
+                        }
+                        // Finger is up, end the path
                         onAction(DrawingActions.OnNewPathEnd)
-                    }, onDragCancel = {
-                        onAction(DrawingActions.OnNewPathEnd)
-                    }, onDrag = { change, _ ->
-                        onAction(DrawingActions.OnDraw(change.position))
-                    })
+                    }
+                }
+//                detectDragGestures(
+//                    onDragStart = {
+//                        onAction(DrawingActions.OnNewPathStart)
+//                    }, onDragEnd = {
+//                        onAction(DrawingActions.OnNewPathEnd)
+//                    }, onDragCancel = {
+//                        onAction(DrawingActions.OnNewPathEnd)
+//                    }, onDrag = { change, _ ->
+//                        onAction(DrawingActions.OnDraw(change.position))
+//                    })
+//
+//                detectTapGestures(
+//                    onTap = {
+//                        onAction(DrawingActions.OnNewPathStart)
+//                        onAction(DrawingActions.OnDraw(it))
+//                        onAction(DrawingActions.OnNewPathEnd)
+//                    }
+//                )
             }
     ) {
         paths.fastForEach { pathData ->
@@ -61,6 +105,15 @@ fun DrawingCanvas(
 private fun DrawScope.drawPath(
     path: List<Offset>, color: Color, thickness: Float = 10f
 ) {
+    if (path.isEmpty()) return
+    if (path.size == 1) {
+        drawCircle(
+            color = color,
+            radius = thickness / 2f,
+            center = path.first()
+        )
+        return
+    }
     val smoothenedPath = Path().apply {
         if (path.isNotEmpty()) {
             moveTo(path.first().x, path.first().y)
