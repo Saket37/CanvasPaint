@@ -33,58 +33,60 @@ fun DrawingCanvas(
             .clipToBounds()
             .background(Color.White)
             .pointerInput(true) {
-                awaitPointerEventScope {
-                    while (true) {
-                        val down = awaitPointerEvent(PointerEventPass.Main)
-                            .changes.first()
-                        down.consume()
-                        // A new path starts as soon as the finger is down
-                        onAction(DrawingActions.OnNewPathStart)
-                        onAction(DrawingActions.OnDraw(down.position))
-                        // Loop to track drag events
-                        while (true) {
-                            val event = awaitPointerEvent(PointerEventPass.Main)
-
-                            // Find the change associated with the original "down" event
-                            val drag = event.changes.firstOrNull { it.id == down.id }
-                            if (drag != null) {
-                                // --- Pointer is moving ---
-                                if (drag.pressed) {
-                                    // This is a drag event
-                                    onAction(DrawingActions.OnDraw(drag.position))
-                                    drag.consume()
-                                }
-                                // --- Pointer went up ---
-                                else {
-                                    // This is the "up" event
-                                    // Consume the "up" event
-                                    drag.consume()
-                                    break // Exit inner drag loop
-                                }
-                            }
-                        }
-                        // Finger is up, end the path
-                        onAction(DrawingActions.OnNewPathEnd)
-                    }
-                }
-//                detectDragGestures(
-//                    onDragStart = {
+//                awaitPointerEventScope {
+//                    while (true) {
+//                        val down = awaitPointerEvent(PointerEventPass.Main)
+//                            .changes.first()
+//                        down.consume()
+//                        // A new path starts as soon as the finger is down
 //                        onAction(DrawingActions.OnNewPathStart)
-//                    }, onDragEnd = {
-//                        onAction(DrawingActions.OnNewPathEnd)
-//                    }, onDragCancel = {
-//                        onAction(DrawingActions.OnNewPathEnd)
-//                    }, onDrag = { change, _ ->
-//                        onAction(DrawingActions.OnDraw(change.position))
-//                    })
+//                        onAction(DrawingActions.OnDraw(down.position))
+//                        // Loop to track drag events
+//                        while (true) {
+//                            val event = awaitPointerEvent(PointerEventPass.Main)
 //
-//                detectTapGestures(
-//                    onTap = {
-//                        onAction(DrawingActions.OnNewPathStart)
-//                        onAction(DrawingActions.OnDraw(it))
+//                            // Find the change associated with the original "down" event
+//                            val drag = event.changes.firstOrNull { it.id == down.id }
+//                            if (drag != null) {
+//                                // --- Pointer is moving ---
+//                                if (drag.pressed) {
+//                                    // This is a drag event
+//                                    onAction(DrawingActions.OnDraw(drag.position))
+//                                    drag.consume()
+//                                }
+//                                // --- Pointer went up ---
+//                                else {
+//                                    // This is the "up" event
+//                                    // Consume the "up" event
+//                                    drag.consume()
+//                                    break // Exit inner drag loop
+//                                }
+//                            }
+//                        }
+//                        // Finger is up, end the path
 //                        onAction(DrawingActions.OnNewPathEnd)
 //                    }
-//                )
+//                }
+                detectDragGestures(
+                    onDragStart = {
+                        onAction(DrawingActions.OnNewPathStart)
+                    }, onDragEnd = {
+                        onAction(DrawingActions.OnNewPathEnd)
+                    }, onDragCancel = {
+                        onAction(DrawingActions.OnNewPathEnd)
+                    }, onDrag = { change, _ ->
+                        onAction(DrawingActions.OnDraw(change.position))
+                    })
+
+            }
+            .pointerInput(true) {
+                detectTapGestures(
+                    onTap = {
+                        onAction(DrawingActions.OnNewPathStart)
+                        onAction(DrawingActions.OnDraw(it))
+                        onAction(DrawingActions.OnNewPathEnd)
+                    }
+                )
             }
     ) {
         paths.fastForEach { pathData ->
