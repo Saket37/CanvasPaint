@@ -28,6 +28,7 @@ fun ColumnScope.CanvasControls(
     colors: List<Color>,
     onColorClick: (Color) -> Unit,
     onClearCanvasClick: () -> Unit,
+    onSavePictureClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -62,12 +63,27 @@ fun ColumnScope.CanvasControls(
             )
         }
     }
-
-    Button(
-        onClick = {
-            onClearCanvasClick()
-        }
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("Clear Canvas")
+        Button(
+            onClick = {
+                onClearCanvasClick()
+            }
+        ) {
+            Text("Clear Canvas")
+        }
+
+        Button(
+            onClick = {
+                onSavePictureClick()
+            }
+        ) {
+            Text("Save Canvas")
+        }
     }
 }
