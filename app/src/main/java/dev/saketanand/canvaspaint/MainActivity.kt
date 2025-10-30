@@ -55,22 +55,11 @@ class MainActivity : ComponentActivity() {
                             paths = state.paths,
                             currentPath = state.currentPath,
                             onAction = viewModel::onAction,
+                            pictureToRecord = picture,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f)
-                                .drawWithContent {
-                                    drawContent()
-                                    val width = this.size.width.toInt()
-                                    val height = this.size.height.toInt()
-                                    val pictureCanvas =
-                                        Canvas(picture.beginRecording(width, height))
 
-                                    draw(this, this.layoutDirection, pictureCanvas, this.size) {
-                                        this@drawWithContent.drawContent()
-                                    }
-                                    picture.endRecording()
-
-                                }
                         )
 
                         CanvasControls(

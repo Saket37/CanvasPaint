@@ -1,5 +1,6 @@
 package dev.saketanand.canvaspaint.component
 
+import android.graphics.Picture
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -14,7 +15,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.graphics.drawscope.draw
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.util.fastForEach
 import dev.saketanand.canvaspaint.DrawingActions
@@ -25,6 +26,7 @@ import kotlin.math.abs
 fun DrawingCanvas(
     paths: List<PathData>,
     currentPath: PathData?,
+    pictureToRecord: Picture,
     onAction: (DrawingActions) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -101,6 +103,28 @@ fun DrawingCanvas(
                 color = it.color,
             )
         }
+
+        val pictureCanvas = androidx.compose.ui.graphics.Canvas(
+            pictureToRecord.beginRecording(
+                size.width.toInt(), size.height.toInt()
+            )
+        )
+        draw(this, layoutDirection, canvas = pictureCanvas, size) {
+            drawRect(color = Color.White)
+            paths.fastForEach { pathData ->
+                drawPath(
+                    path = pathData.path,
+                    color = pathData.color,
+                )
+            }
+            currentPath?.let {
+                drawPath(
+                    path = it.path,
+                    color = it.color,
+                )
+            }
+        }
+        pictureToRecord.endRecording()
     }
 }
 
