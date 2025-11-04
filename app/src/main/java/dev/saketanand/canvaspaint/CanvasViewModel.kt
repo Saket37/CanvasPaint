@@ -34,6 +34,20 @@ class CanvasViewModel : ViewModel() {
     private val _state = MutableStateFlow(DrawingState())
     val state = _state.asStateFlow()
 
+    private val _showDialog = MutableStateFlow(false)
+    val showDialog = _showDialog.asStateFlow()
+
+    private val _launchAppSettings = MutableStateFlow(false)
+    val launchAppSettings = _launchAppSettings.asStateFlow()
+
+    fun updateShowDialog(show: Boolean) {
+        _showDialog.update { show }
+    }
+
+    fun updateLaunchAppSettings(launch: Boolean) {
+        _launchAppSettings.update { launch }
+    }
+
     fun onAction(action: DrawingActions) {
         when (action) {
             DrawingActions.OnClearCanvasClick -> onClearCanvasClick()
